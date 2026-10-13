@@ -1,10 +1,23 @@
 import { Link } from 'react-router'
 import { normalizarPreco, produtoTemPrecoValido } from '../utils/carrinho'
 import { formatarPreco } from '../utils/formatarPreco'
+import { useState } from 'react'
 
 export default function ProdutoCard({ produto, onAdicionar }) {
   const semPreco = !produtoTemPrecoValido(produto)
   const esgotado = produto.estoque === 0 || semPreco
+  const [adicionando, setAdicionando] = useState(false)
+
+  function handleAdicionar() {
+    if (esgotado || adicionando) return
+    setAdicionando(true)
+    try {
+      onAdicionar(produto)
+    } finally {
+      // reabilita depois de um curto intervalo para evitar double-clicks rápidos
+      setTimeout(() => setAdicionando(false), 300)
+    }
+  }
 
   return (
     <article className="card">
@@ -35,8 +48,8 @@ export default function ProdutoCard({ produto, onAdicionar }) {
         {esgotado && <span className="selo selo-esgotado">Esgotado</span>}
       </div>
 
-      <button className="botao" onClick={() => onAdicionar(produto)} disabled={esgotado}>
-        Adicionar ao carrinho
+      <button className="botao" onClick={handleAdicionar} disabled={esgotado || adicionando}>
+        {adicionando ? 'Adicionando...' : 'Adicionar ao carrinho'}
       </button>
     </article>
   )
