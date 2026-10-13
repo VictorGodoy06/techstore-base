@@ -1,5 +1,10 @@
 import { formatarPreco } from '../utils/formatarPreco'
+import ProdutoCard from './ProdutoCard'
 
+export default function SugestaoItem({ produto, onAdicionar }) {
+  // Renderiza exatamente o ProdutoCard para garantir consistência visual
+  return <ProdutoCard produto={produto} onAdicionar={onAdicionar} />
+}
 export default function SugestaoItem({ produto, onAdicionar }) {
   return (
     <div className="sugestao">

@@ -1,5 +1,7 @@
 import { Link, useParams } from 'react-router'
 import { useState } from 'react'
+import ProdutoCard from '../components/ProdutoCard'
+import { formatarPreco } from '../utils/formatarPreco'
 
 export default function PaginaProduto({ produtos, onAdicionar, onAvisar }) {
   const { id } = useParams()
@@ -21,20 +23,21 @@ export default function PaginaProduto({ produtos, onAdicionar, onAvisar }) {
 
   function enviarPedidoAviso(evento) {
     evento.preventDefault()
-
     const nomeLimpo = nomeAviso.trim()
     const emailLimpo = emailAviso.trim()
-
     if (!nomeLimpo || !emailLimpo) {
       setMensagemAviso('Preencha nome e e-mail para receber o aviso.')
       return
     }
-
     onAvisar?.(produto.id, nomeLimpo, emailLimpo)
     setMensagemAviso('Pedido registrado! Avisaremos quando o produto voltar.')
     setNomeAviso('')
     setEmailAviso('')
   }
+
+  const relacionados = produtos
+    .filter((item) => item.category === produto.category && item.id !== produto.id)
+    .slice(0, 4)
 
   return (
     <section>
@@ -54,7 +57,10 @@ export default function PaginaProduto({ produtos, onAdicionar, onAvisar }) {
           <p className="card-avaliacao">
             ★ {produto.rating.rate} <span>({produto.rating.count} avaliações)</span>
           </p>
-          <p className="detalhe-preco">R$ {Number(produto.price).toFixed(2).replace('.', ',')}</p>
+
+          {/* usar formatador consistente */}
+          <p className="detalhe-preco">{formatarPreco(produto.price)}</p>
+
           <p className="detalhe-descricao">{produto.description}</p>
           <p className="detalhe-estoque">{produto.estoque} unidades disponíveis</p>
 
@@ -69,36 +75,29 @@ export default function PaginaProduto({ produtos, onAdicionar, onAvisar }) {
           ) : (
             <div className="esgotado">
               <p className="aviso aviso-erro">Esgotado</p>
-
               <form onSubmit={enviarPedidoAviso} className="form-aviso">
                 <label>
                   Nome
-                  <input
-                    value={nomeAviso}
-                    onChange={(evento) => setNomeAviso(evento.target.value)}
-                    placeholder="Seu nome"
-                  />
+                  <input value={nomeAviso} onChange={(e) => setNomeAviso(e.target.value)} placeholder="Seu nome" />
                 </label>
-
                 <label>
                   E-mail
-                  <input
-                    type="email"
-                    value={emailAviso}
-                    onChange={(evento) => setEmailAviso(evento.target.value)}
-                    placeholder="seu@email.com"
-                  />
+                  <input type="email" value={emailAviso} onChange={(e) => setEmailAviso(e.target.value)} placeholder="seu@email.com" />
                 </label>
-
-                <button type="submit" className="botao botao-secundario">
-                  Me avise quando chegar
-                </button>
+                <button type="submit" className="botao botao-secundario">Me avise quando chegar</button>
               </form>
-
               {mensagemAviso && <p className="mensagem">{mensagemAviso}</p>}
             </div>
           )}
         </div>
+      </div>
+
+      <h2>Produtos relacionados</h2>
+      <div className="grade">
+        {relacionados.map((item) => (
+          // usa ProdutoCard para manter exatamente o mesmo visual e comportamento
+          <ProdutoCard key={item.id} produto={item} onAdicionar={onAdicionar} />
+        ))}
       </div>
     </section>
   )
