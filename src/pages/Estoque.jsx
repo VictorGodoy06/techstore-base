@@ -1,7 +1,7 @@
 export default function Estoque({ produtos = [], espera = [] }) {
   const ordenados = produtos.slice().sort((a, b) => a.estoque - b.estoque)
   const esperaPorProduto = espera.reduce((acumulador, item) => {
-    ; (acumulador[item.produtoId] ||= []).push(item)
+    ;(acumulador[item.produtoId] ||= []).push(item)
     return acumulador
   }, {})
 

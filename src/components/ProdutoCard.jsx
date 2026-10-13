@@ -10,11 +10,11 @@ export default function ProdutoCard({ produto, onAdicionar }) {
 
   function handleAdicionar() {
     if (esgotado || adicionando) return
+
     setAdicionando(true)
     try {
       onAdicionar(produto)
     } finally {
-      // reabilita depois de um curto intervalo para evitar double-clicks rápidos
       setTimeout(() => setAdicionando(false), 300)
     }
   }
