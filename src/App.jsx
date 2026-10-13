@@ -17,6 +17,7 @@ export default function App() {
   const [carrinho, setCarrinho] = useState([])
   const [clientes, setClientes] = useState([])
   const [clienteAtualId, setClienteAtualId] = useState(null)
+  const [espera, setEspera] = useState([])
 
   useEffect(() => {
     buscarProdutos()
@@ -31,21 +32,48 @@ export default function App() {
   }, [])
 
   function adicionarAoCarrinho(produto) {
-    setCarrinho(carrinho.concat(produto))
+    const preco = Number(produto.price)
+
+    if (!produto.price || Number.isNaN(preco)) {
+      alert('Este produto ainda não tem preço definido e não pode ser adicionado ao carrinho.')
+      return
+    }
+
+    if (Number(produto.estoque) <= 0) {
+      alert('Produto esgotado e não pode ser adicionado ao carrinho.')
+      return
+    }
+
+    setCarrinho((atual) => atual.concat(produto))
+  }
+
+  function solicitarAviso(produtoId, nome, email) {
+    const nomeLimpo = nome.trim()
+    const emailLimpo = email.trim()
+
+    if (!nomeLimpo || !emailLimpo) return
+
+    setEspera((atual) =>
+      atual.concat({
+        produtoId,
+        nome: nomeLimpo,
+        email: emailLimpo,
+        criadoEm: new Date().toISOString(),
+      })
+    )
   }
 
   function removerUmaUnidade(produtoId) {
-    // Remove só a primeira unidade encontrada do produto
-    let removido = false
-    setCarrinho(
-      carrinho.filter((produto) => {
+    setCarrinho((atual) => {
+      let removido = false
+      return atual.filter((produto) => {
         if (!removido && produto.id === produtoId) {
           removido = true
           return false
         }
         return true
       })
-    )
+    })
   }
 
   const clienteAtual = clientes.find((cliente) => cliente.id === clienteAtualId)
@@ -61,14 +89,19 @@ export default function App() {
 
         {!carregando && !erro && (
           <Routes>
-            <Route
-              path="/"
-              element={<Loja produtos={produtos} onAdicionar={adicionarAoCarrinho} />}
-            />
+            <Route path="/" element={<Loja produtos={produtos} onAdicionar={adicionarAoCarrinho} />} />
+
             <Route
               path="/produto/:id"
-              element={<PaginaProduto produtos={produtos} onAdicionar={adicionarAoCarrinho} />}
+              element={
+                <PaginaProduto
+                  produtos={produtos}
+                  onAdicionar={adicionarAoCarrinho}
+                  onAvisar={solicitarAviso}
+                />
+              }
             />
+
             <Route
               path="/carrinho"
               element={
@@ -81,7 +114,8 @@ export default function App() {
                 />
               }
             />
-            <Route path="/estoque" element={<Estoque produtos={produtos} />} />
+
+            <Route path="/estoque" element={<Estoque produtos={produtos} espera={espera} />} />
           </Routes>
         )}
       </main>

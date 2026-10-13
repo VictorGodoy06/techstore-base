@@ -1,8 +1,10 @@
 import { Link } from 'react-router'
+import { normalizarPreco, produtoTemPrecoValido } from '../utils/carrinho'
 import { formatarPreco } from '../utils/formatarPreco'
 
 export default function ProdutoCard({ produto, onAdicionar }) {
-  const esgotado = produto.estoque === 0
+  const semPreco = !produtoTemPrecoValido(produto)
+  const esgotado = produto.estoque === 0 || semPreco
 
   return (
     <article className="card">
@@ -21,11 +23,15 @@ export default function ProdutoCard({ produto, onAdicionar }) {
         {produto.precoOriginal && (
           <span className="preco-original">{formatarPreco(produto.precoOriginal)}</span>
         )}
-        <span className="preco">{formatarPreco(produto.price)}</span>
+        <span className="preco">
+          {produtoTemPrecoValido(produto) ? formatarPreco(produto.price) : 'Preço indisponível'}
+        </span>
       </div>
 
       <div className="card-selos">
-        {produto.price > 100 && <span className="selo selo-frete">Frete grátis</span>}
+        {produtoTemPrecoValido(produto) && normalizarPreco(produto.price) > 100 && (
+          <span className="selo selo-frete">Frete grátis</span>
+        )}
         {esgotado && <span className="selo selo-esgotado">Esgotado</span>}
       </div>
 

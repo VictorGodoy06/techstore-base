@@ -1,8 +1,12 @@
 import { Link, useParams } from 'react-router'
+import { useState } from 'react'
 
-export default function PaginaProduto({ produtos, onAdicionar }) {
+export default function PaginaProduto({ produtos, onAdicionar, onAvisar }) {
   const { id } = useParams()
   const produto = produtos.find((item) => item.id === id)
+  const [nomeAviso, setNomeAviso] = useState('')
+  const [emailAviso, setEmailAviso] = useState('')
+  const [mensagemAviso, setMensagemAviso] = useState('')
 
   if (!produto) {
     return (
@@ -15,9 +19,22 @@ export default function PaginaProduto({ produtos, onAdicionar }) {
     )
   }
 
-  const relacionados = produtos
-    .filter((item) => item.category === produto.category && item.id !== produto.id)
-    .slice(0, 4)
+  function enviarPedidoAviso(evento) {
+    evento.preventDefault()
+
+    const nomeLimpo = nomeAviso.trim()
+    const emailLimpo = emailAviso.trim()
+
+    if (!nomeLimpo || !emailLimpo) {
+      setMensagemAviso('Preencha nome e e-mail para receber o aviso.')
+      return
+    }
+
+    onAvisar?.(produto.id, nomeLimpo, emailLimpo)
+    setMensagemAviso('Pedido registrado! Avisaremos quando o produto voltar.')
+    setNomeAviso('')
+    setEmailAviso('')
+  }
 
   return (
     <section>
@@ -37,41 +54,51 @@ export default function PaginaProduto({ produtos, onAdicionar }) {
           <p className="card-avaliacao">
             ★ {produto.rating.rate} <span>({produto.rating.count} avaliações)</span>
           </p>
-          <p className="detalhe-preco">R$ {produto.price.toFixed(2).replace('.', ',')}</p>
+          <p className="detalhe-preco">R$ {Number(produto.price).toFixed(2).replace('.', ',')}</p>
           <p className="detalhe-descricao">{produto.description}</p>
           <p className="detalhe-estoque">{produto.estoque} unidades disponíveis</p>
 
-          <button
-            className="botao botao-grande"
-            onClick={() => onAdicionar(produto)}
-            disabled={produto.estoque === 0}
-          >
-            Adicionar ao carrinho
-          </button>
-
-          <ul className="detalhe-garantias">
-            <li>Troca grátis em até 30 dias</li>
-            <li>Parcele em até 10x sem juros</li>
-          </ul>
-        </div>
-      </div>
-
-      <h2>Produtos relacionados</h2>
-      <div className="grade">
-        {relacionados.map((item) => (
-          <article key={item.id} className="card">
-            <Link to={`/produto/${item.id}`} className="card-link">
-              <div className="card-imagem-moldura">
-                <img src={item.image} alt={item.title} className="card-imagem" />
-              </div>
-              <h3 className="card-titulo">{item.title}</h3>
-            </Link>
-            <p className="preco">R$ {Number(item.price).toFixed(2).replace('.', ',')}</p>
-            <button className="botao" onClick={() => onAdicionar(item)}>
+          {produto.estoque > 0 ? (
+            <button
+              className="botao botao-grande"
+              onClick={() => onAdicionar(produto)}
+              disabled={produto.estoque === 0}
+            >
               Adicionar ao carrinho
             </button>
-          </article>
-        ))}
+          ) : (
+            <div className="esgotado">
+              <p className="aviso aviso-erro">Esgotado</p>
+
+              <form onSubmit={enviarPedidoAviso} className="form-aviso">
+                <label>
+                  Nome
+                  <input
+                    value={nomeAviso}
+                    onChange={(evento) => setNomeAviso(evento.target.value)}
+                    placeholder="Seu nome"
+                  />
+                </label>
+
+                <label>
+                  E-mail
+                  <input
+                    type="email"
+                    value={emailAviso}
+                    onChange={(evento) => setEmailAviso(evento.target.value)}
+                    placeholder="seu@email.com"
+                  />
+                </label>
+
+                <button type="submit" className="botao botao-secundario">
+                  Me avise quando chegar
+                </button>
+              </form>
+
+              {mensagemAviso && <p className="mensagem">{mensagemAviso}</p>}
+            </div>
+          )}
+        </div>
       </div>
     </section>
   )
