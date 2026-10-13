@@ -2,18 +2,20 @@
 // Ex.: duas camisetas iguais = o mesmo produto duas vezes no array.
 
 export function normalizarPreco(valor) {
-  if (valor === null || valor === undefined || valor === '') {
-    return null
+  if (valor === null || valor === undefined || valor === '') return null
+
+  if (typeof valor === 'number' && Number.isFinite(valor)) return valor
+
+  let texto = String(valor).trim()
+  if (!texto) return null
+
+  if (texto.includes('.') && texto.includes(',')) {
+    texto = texto.replace(/\./g, '').replace(',', '.')
+  } else if (texto.includes(',')) {
+    texto = texto.replace(',', '.')
   }
 
-  const texto = String(valor).trim()
-  if (!texto) {
-    return null
-  }
-
-  const numero = Number(
-    texto.replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, '')
-  )
+  const numero = Number(texto.replace(/[^\d.-]/g, ''))
 
   return Number.isFinite(numero) ? numero : null
 }
